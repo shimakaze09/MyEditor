@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include <MyScene/core/core>
+#include <MyScene/core.h>
 
 namespace My {
 class Editor {
  public:
-  Read<Editor, SObj*> roamerobj;
+  Read<Editor, Scene*> scene;
 
   static Editor& Instance() noexcept {
     static Editor instance;
@@ -17,10 +17,11 @@ class Editor {
   }
 
   void SetCamera(SObj* cameraobj);
-  void Update();
+
+  static void OnRegist();
 
  private:
   Editor();
-  Scene scene{"Editor Scene"};
+  ~Editor();
 };
 }  // namespace My

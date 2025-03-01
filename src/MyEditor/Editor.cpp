@@ -4,27 +4,36 @@
 
 #include "Editor.h"
 
-#include "Roamer.h"
+#include "Cmpt/Hierarchy.h"
+#include "Cmpt/Roamer.h"
 
-#include <MyScene/core/core>
+#include <MyScene/core.h>
 
 using namespace My;
 using namespace std;
 
-Editor::Editor() {
-  auto rst = scene.CreateSObj<Cmpt::Camera, Cmpt::Roamer>("roamerobj");
-  roamerobj = get<SObj*>(rst);
+Editor::Editor() : scene{new Scene{"Editor Scene"}} {
+  scene->CreateSObj<Cmpt::Camera, Cmpt::Roamer>("roamer");
+  scene->CreateSObj<Cmpt::Hierarchy>("hierarchy");
+}
+
+Editor::~Editor() {
+  delete scene;
 }
 
 void Editor::SetCamera(SObj* cameraobj) {
-  auto pos = cameraobj->Get<Cmpt::Transform>()->WorldPos();
-  auto rot = cameraobj->Get<Cmpt::Transform>()->WorldRot();
-  roamerobj->Get<Cmpt::Transform>()->SetPosition(pos);
-  roamerobj->Get<Cmpt::Transform>()->SetRotation(rot);
-  roamerobj->Get<Cmpt::Camera>()->SetAR(cameraobj->Get<Cmpt::Camera>()->ar);
-  roamerobj->Get<Cmpt::Camera>()->SetFOV(cameraobj->Get<Cmpt::Camera>()->fov);
+  auto l2w = cameraobj->Get<Cmpt::L2W>();
+  auto src_cam = cameraobj->Get<Cmpt::Camera>();
+  auto dst_cam = cameraobj->Get<Cmpt::Camera>();
+  auto roamerobj = scene->root->GetSObjInTreeWith<Cmpt::Roamer>();
+
+  roamerobj->Get<Cmpt::Position>()->value = l2w->WorldPos();
+  roamerobj->Get<Cmpt::Rotation>()->value = l2w->WorldRot();
+
+  *dst_cam = *src_cam;
 }
 
-void Editor::Update() {
-  scene.Update();
+void Editor::OnRegist() {
+  CmptRegister::Instance().Regist<Cmpt::Roamer>();
+  CmptRegister::Instance().Regist<Cmpt::Hierarchy>();
 }
